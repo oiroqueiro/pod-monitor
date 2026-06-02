@@ -1,3 +1,6 @@
+> [!NOTE]
+> Este proyecto y toda su documentación han sido generados automática y completamente por **Gemini** desde **Antigravity**.
+
 # 📊 Podman Monitor: Hardened Observability Stack
 
 A state-of-the-art, high-performance, and **secure-by-design** system monitoring stack. This project packages **Node Exporter**, **Podman Exporter**, and **Prometheus** into a single Pod using rootless/system-wide **Podman** and **Quadlets**, integrated natively with Linux `systemd`.
