@@ -1,69 +1,69 @@
 > [!NOTE]
-> This project and all its documentation have been automatically and completely developed by **Gemini (Antigravity)** under the supervision and management of **Oscar Iglesias Roqueiro** (@oiroqueiro).
+> Este proyecto y toda su documentación han sido desarrollados automática y completamente por **Gemini (Antigravity)** bajo la supervisión y gestión de **Oscar Iglesias Roqueiro** (@oiroqueiro).
 
-# 📊 Podman Monitor: Hardened Observability Stack
+# 📊 Podman Monitor: Stack de Observabilidad Endurecido
 
-A state-of-the-art, high-performance, and **secure-by-design** system monitoring stack. This project packages **Node Exporter**, **Podman Exporter**, and **Prometheus** into a single Pod using rootless/system-wide **Podman** and **Quadlets**, integrated natively with Linux `systemd`.
+Un stack de monitoreo de sistemas de alto rendimiento, eficiente y **seguro por diseño**. Este proyecto empaqueta **Node Exporter**, **Podman Exporter** y **Prometheus** en un único Pod utilizando **Podman** (rootless o global) y **Quadlets**, integrado nativamente con Linux `systemd`.
 
-This stack is designed to send host and container metrics securely to a central Prometheus server using Prometheus `remote_write` over a private network interface (e.g. Netbird VPN).
+Este stack está diseñado para enviar métricas del host y de los contenedores de forma segura a un servidor Prometheus central utilizando Prometheus `remote_write` a través de una interfaz de red privada (por ejemplo, el túnel VPN de Netbird).
 
 ---
 
-## 🏗️ Architecture & Component Stack
+## 🏗️ Arquitectura y Componentes del Stack
 
-The stack consolidates three core monitoring services into a single systemd-managed Pod:
+El stack consolida tres servicios principales en un único Pod administrado por Systemd:
 
-| Component | Upstream Image | Hardened Base Image | Purpose & Scope |
+| Componente | Imagen de Origen | Imagen Base Endurecida | Propósito y Alcance |
 | :--- | :--- | :--- | :--- |
-| **Node Exporter** | `quay.io/prometheus/node-exporter` | `docker.io/library/alpine` (Minimal) | Captures OS-level metrics (CPU, RAM, Disk, IO). |
-| **Podman Exporter** | `quay.io/navidys/prometheus-podman-exporter` | `docker.io/library/alpine` (Minimal) | Interacts with the Podman API socket to scrape container metrics. |
-| **Prometheus** | `docker.io/prom/prometheus` | `docker.io/library/alpine` (Minimal) | Aggregates local metrics and forwards them via `remote_write` to the central hub. |
+| **Node Exporter** | `quay.io/prometheus/node-exporter` | `docker.io/library/alpine` (Mínima) | Captura métricas a nivel de sistema operativo (CPU, RAM, Disco, E/S). |
+| **Podman Exporter** | `quay.io/navidys/prometheus-podman-exporter` | `docker.io/library/alpine` (Mínima) | Se conecta al socket de la API de Podman para extraer métricas de los contenedores. |
+| **Prometheus** | `docker.io/prom/prometheus` | `docker.io/library/alpine` (Mínima) | Agrega métricas locales y las reenvía mediante `remote_write` al servidor central. |
 
 ---
 
-## 🔒 Security Hardening Standards
+## 🔒 Estándares de Seguridad y Endurecimiento
 
-Every container inside the Pod runs under strict security constraints:
-- **No Root Execution:** Every process runs under unprivileged UIDs (`USER 1000`).
-- **Read-Only Root Filesystem:** Prevents runtime mutations in the container filesystem (`readOnlyRootFilesystem: true`).
-- **Privilege Escalation Blocked:** Zero chance of container escapes (`allowPrivilegeEscalation: false`).
-- **Dropped Capabilities:** Drops all default Linux kernel capabilities (`capabilities: drop: [ALL]`).
-- **No unnecessary binaries:** Built from clean minimal images containing zero compilers or build tools.
+Cada contenedor dentro del Pod se ejecuta bajo estrictas restricciones de seguridad:
+- **Sin ejecución como Root:** Todos los procesos se ejecutan bajo UIDs sin privilegios (`USER 1000`).
+- **Sistema de archivos de solo lectura:** Evita modificaciones en caliente del sistema de archivos del contenedor (`readOnlyRootFilesystem: true`).
+- **Bloqueo de escalada de privilegios:** Imposibilidad total de escapes del contenedor (`allowPrivilegeEscalation: false`).
+- **Capacidades eliminadas:** Se eliminan todas las capacidades por defecto del kernel de Linux (`capabilities: drop: [ALL]`).
+- **Sin binarios innecesarios:** Compilado a partir de imágenes base limpias y mínimas sin herramientas de compilación ni shells innecesarias.
 
 ---
 
-## ⚙️ Configuration & Environment
+## ⚙️ Configuración y Variables de Entorno
 
-The stack is configured using `.env` files located under `env/`:
+El stack se configura utilizando los archivos `.env` ubicados en `env/`:
 
-- **Local Development:** `env/local.env` (uses rootless user paths, e.g. `/run/user/1000/podman/podman.sock`).
-- **Production Server:** `env/prod.env` (uses system-wide socket `/run/man/podman/podman.sock`).
+- **Desarrollo Local:** `env/local.env` (utiliza rutas de usuario rootless, ej. `/run/user/1000/podman/podman.sock`).
+- **Servidor de Producción:** `env/prod.env` (utiliza el socket global del sistema `/run/podman/podman.sock`).
 
-### Configuration parameters:
+### Parámetros de configuración:
 ```ini
 PROJECT_NAME=monitor
 NETWORK_NAME=monitor-network
 
-# Observability relay
-PROMETHEUS_CENTRAL=10.0.0.1         # IP of the central Prometheus instance (example)
-MONITOR_NODE_NAME=vps-prod           # Identifier label for metrics
+# Relevo de observabilidad
+PROMETHEUS_CENTRAL=10.0.0.1         # IP del servidor Prometheus central (ejemplo)
+MONITOR_NODE_NAME=vps-prod           # Identificador para las métricas
 
 PORT_NODE_EXPORTER=9100
 PORT_PODMAN_EXPORTER=9882
 PORT_PROMETHEUS=9090
 
-PODMAN_SOCK=/run/podman/podman.sock # Path to the Podman API Socket
+PODMAN_SOCK=/run/podman/podman.sock # Ruta del socket de la API de Podman
 ```
 
 ---
 
-## 🚀 Deployment Guide
+## 🚀 Guía de Despliegue
 
-### Prerequisite: Habilitar Socket de Podman
-The Podman API socket must be listening on the host to allow the exporter to scrape metrics:
+### Requisito previo: Habilitar el Socket de Podman
+El socket de la API de Podman debe estar activo en el host para permitir que el exportador lea las métricas:
 
 ```bash
-# Para despliegues a nivel de sistema (root):
+# Para despliegues globales de sistema (root):
 sudo systemctl enable --now podman.socket
 
 # Para despliegues de usuario (rootless):
@@ -100,6 +100,6 @@ systemctl stop monitor.service
 
 ---
 
-## 📄 License
+## 📄 Licencia
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
