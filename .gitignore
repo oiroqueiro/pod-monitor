@@ -1,0 +1,19 @@
+# Ignorar variables de entorno (Datos sensibles/locales)
+env/*.env
+
+# Ignorar sockets y temporales
+*.sock
+.qodo/
+
+# Ignorar logs de sistema
+*.log
+
+# Archivos generados
+*.generated.*
+
+# Datos persistentes
+data/
+
+
+
+

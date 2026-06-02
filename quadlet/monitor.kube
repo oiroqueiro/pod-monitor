@@ -1,0 +1,15 @@
+# # -------------------------------------------------------------------------
+# QUADLET TEMPLATE: monitor.kube
+# # -------------------------------------------------------------------------
+[Unit]
+Description=Podman Monitor Pod (Observabilidad Endurecida)
+Wants=network-online.target
+After=network-online.target
+
+[Kube]
+# La magia del symlink: solo necesitamos el nombre del archivo
+Yaml=monitor.yaml
+Network=${NETWORK_NAME}
+
+[Install]
+WantedBy=default.target

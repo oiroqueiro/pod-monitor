@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Envío centralizado de métricas a OCI (vía túnel Netbird)
+remote_write:
+  - url: "http://${PROMETHEUS_CENTRAL}:9090/api/v1/write"
+    write_relabel_configs:
+      - target_label: env
+        replacement: "${MONITOR_NODE_NAME}"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['localhost:9100']
+
+  - job_name: 'podman-exporter'
+    static_configs:
+      - targets: ['localhost:9882']

@@ -1,0 +1,90 @@
+# # -------------------------------------------------------------------------
+# TEMPLATE: monitor.yaml (100% Hardened Local)
+# # -------------------------------------------------------------------------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ${PROJECT_NAME}
+spec:
+  containers:
+    # 1. Sensor del Sistema Operativo (Distroless Local)
+    - name: sensor-so
+      image: ${REGISTRY_PREFIX}/monitor-node-exporter:${IMAGE_TAG}
+      securityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: [ALL]
+      ports:
+        - containerPort: 9100
+          hostPort: ${PORT_NODE_EXPORTER}
+      volumeMounts:
+        - name: proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: sys
+          mountPath: /host/sys
+          readOnly: true
+
+    # 2. Sensor de Podman (Distroless Local)
+    - name: sensor-podman
+      image: ${REGISTRY_PREFIX}/monitor-podman-exporter:${IMAGE_TAG}
+      securityContext:
+        runAsUser: 0  # En rootless, el UID 0 interno equivale a tu usuario externo (puede leer el socket)
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: [ALL]
+      env:
+        - name: CONTAINER_HOST
+          value: unix:///run/podman/podman.sock
+      ports:
+        - containerPort: 9882
+          hostPort: ${PORT_PODMAN_EXPORTER}
+      volumeMounts:
+        - name: podman-sock
+          mountPath: /run/podman/podman.sock
+          readOnly: true
+        - name: dot-config
+          mountPath: /.config
+
+    # 3. Servidor Prometheus (Wolfi Local)
+    - name: prometheus
+      image: ${REGISTRY_PREFIX}/monitor-prometheus:${IMAGE_TAG}
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: [ALL]
+      ports:
+        - containerPort: 9090
+          hostPort: ${PORT_PROMETHEUS}
+      volumeMounts:
+        - name: prometheus-config
+          mountPath: /etc/prometheus/prometheus.yml
+          readOnly: true
+        - name: prometheus-data
+          mountPath: /prometheus
+          readOnly: false
+
+  volumes:
+    - name: proc
+      hostPath:
+        path: /proc
+    - name: sys
+      hostPath:
+        path: /sys
+    - name: podman-sock
+      hostPath:
+        path: ${PODMAN_SOCK}
+    - name: dot-config
+      emptyDir: {}
+    - name: prometheus-config
+      hostPath:
+        path: ${PROJECT_DIR}/config/prometheus.generated.yml
+    - name: prometheus-data
+      hostPath:
+        path: ${PROJECT_DIR}/data/prometheus
