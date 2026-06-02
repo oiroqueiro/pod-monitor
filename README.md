@@ -1,5 +1,5 @@
 > [!NOTE]
-> Developed by **Gemini (Antigravity)**. Supervised by **Oscar Iglesias Roqueiro** (@oiroqueiro).
+> This project and all its documentation have been automatically and completely developed by **Gemini (Antigravity)** under the supervision and management of **Oscar Iglesias Roqueiro** (@oiroqueiro).
 
 # 📊 Podman Monitor: Hardened Observability Stack
 
