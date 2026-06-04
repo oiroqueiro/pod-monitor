@@ -49,27 +49,6 @@ spec:
         - name: dot-config
           mountPath: /.config
 
-    # 3. Servidor Prometheus (Wolfi Local)
-    - name: prometheus
-      image: ${REGISTRY_PREFIX}/monitor-prometheus:${IMAGE_TAG}
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        readOnlyRootFilesystem: true
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop: [ALL]
-      ports:
-        - containerPort: 9090
-          hostPort: ${PORT_PROMETHEUS}
-      volumeMounts:
-        - name: prometheus-config
-          mountPath: /etc/prometheus/prometheus.yml
-          readOnly: true
-        - name: prometheus-data
-          mountPath: /prometheus
-          readOnly: false
-
   volumes:
     - name: proc
       hostPath:
@@ -82,9 +61,3 @@ spec:
         path: ${PODMAN_SOCK}
     - name: dot-config
       emptyDir: {}
-    - name: prometheus-config
-      hostPath:
-        path: ${PROJECT_DIR}/config/prometheus.generated.yml
-    - name: prometheus-data
-      hostPath:
-        path: ${PROJECT_DIR}/data/prometheus

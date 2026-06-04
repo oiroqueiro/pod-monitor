@@ -22,14 +22,8 @@ set +a
 # 2. Asegurar que la red existe en Podman (a nivel de sistema/root)
 podman network exists ${NETWORK_NAME} || podman network create ${NETWORK_NAME}
 
-# 3. Preparar directorios de datos y permisos (UID/GID 1000 para Prometheus)
-echo "[INFO] Preparando volúmenes locales y permisos (UID/GID 1000)..."
-mkdir -p "$PROJECT_DIR/data/prometheus"
-chown -R 1000:1000 "$PROJECT_DIR/data/prometheus"
-
 # 4. Generación dinámica
 echo "[INFO] Generando archivos estáticos con envsubst..."
-envsubst < "$PROJECT_DIR/config/prometheus.yml" > "$PROJECT_DIR/config/prometheus.generated.yml"
 envsubst < "$PROJECT_DIR/manifests/monitor.yaml" > "$PROJECT_DIR/manifests/monitor.generated.yaml"
 envsubst < "$PROJECT_DIR/quadlet/monitor.kube" > "$PROJECT_DIR/quadlet/monitor.generated.kube"
 

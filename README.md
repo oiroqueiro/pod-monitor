@@ -3,21 +3,20 @@
 
 # 📊 Podman Monitor: Hardened Observability Stack
 
-A high-performance, efficient, and **secure-by-design** system monitoring stack. This project packages **Node Exporter**, **Podman Exporter**, and **Prometheus** into a single Pod using rootless/system-wide **Podman** and **Quadlets**, integrated natively with Linux `systemd`.
+A high-performance, efficient, and **secure-by-design** system monitoring stack. This project packages **Node Exporter** and **Podman Exporter** into a single Pod using rootless/system-wide **Podman** and **Quadlets**, integrated natively with Linux `systemd`.
 
-This stack is designed to send host and container metrics securely to a central Prometheus server using Prometheus `remote_write` over a private network interface (e.g. Netbird VPN).
+This stack is designed to expose metrics endpoints securely so they can be scraped directly by a central Prometheus server over a private network interface (e.g. Netbird VPN).
 
 ---
 
 ## 🏗️ Architecture & Component Stack
 
-The stack consolidates three core monitoring services into a single systemd-managed Pod:
+The stack consolidates two core monitoring services into a single systemd-managed Pod:
 
 | Component | Upstream Image | Hardened Base Image | Purpose & Scope |
 | :--- | :--- | :--- | :--- |
 | **Node Exporter** | `quay.io/prometheus/node-exporter` | `docker.io/library/alpine` (Minimal) | Captures OS-level metrics (CPU, RAM, Disk, IO). |
 | **Podman Exporter** | `quay.io/navidys/prometheus-podman-exporter` | `docker.io/library/alpine` (Minimal) | Interacts with the Podman API socket to scrape container metrics. |
-| **Prometheus** | `docker.io/prom/prometheus` | `docker.io/library/alpine` (Minimal) | Aggregates local metrics and forwards them via `remote_write` to the central hub. |
 
 ---
 
@@ -44,13 +43,8 @@ The stack is configured using `.env` files located under `env/`:
 PROJECT_NAME=monitor
 NETWORK_NAME=monitor-network
 
-# Observability relay
-PROMETHEUS_CENTRAL=10.0.0.1         # IP of the central Prometheus instance (example)
-MONITOR_NODE_NAME=vps-prod           # Identifier label for metrics
-
 PORT_NODE_EXPORTER=9100
 PORT_PODMAN_EXPORTER=9882
-PORT_PROMETHEUS=9090
 
 PODMAN_SOCK=/run/podman/podman.sock # Path to the Podman API Socket
 ```
