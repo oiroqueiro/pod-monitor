@@ -13,7 +13,7 @@ scrape_configs:
   - job_name: podman
     journal:
       max_age: 12h
-      path: /var/log/journal
+      path: /host/run/log/journal
       labels:
         host: ${MONITOR_NODE_NAME}
         job: docker_logs
@@ -34,10 +34,10 @@ scrape_configs:
         labels:
           job: system_logs
           host: ${MONITOR_NODE_NAME}
-          __path__: /var/log/syslog
+          __path__: /host/var/log/syslog
       - targets:
           - localhost
         labels:
           job: system_logs
           host: ${MONITOR_NODE_NAME}
-          __path__: /var/log/auth.log
+          __path__: /host/var/log/auth.log

@@ -66,10 +66,10 @@ spec:
           mountPath: /etc/promtail/config.yml
           readOnly: true
         - name: journal
-          mountPath: /var/log/journal
+          mountPath: /host/run/log/journal
           readOnly: true
         - name: var-log
-          mountPath: /var/log
+          mountPath: /host/var/log
           readOnly: true
         - name: machine-id
           mountPath: /etc/machine-id
