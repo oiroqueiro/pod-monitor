@@ -6,6 +6,10 @@ kind: Pod
 metadata:
   name: ${PROJECT_NAME}
 spec:
+  securityContext:
+    supplementalGroups:
+      - ${GID_ADM}
+      - ${GID_JOURNAL}
   containers:
     # 1. Sensor del Sistema Operativo (Distroless Local)
     - name: sensor-so
