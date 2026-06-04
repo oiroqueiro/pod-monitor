@@ -1,0 +1,43 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://${OCI_NETBIRD_IP}:3100/loki/api/v1/push
+
+scrape_configs:
+  # --- BLOQUE 1: LOGS DE CONTENEDORES PODMAN (VIA JOURNALD) ---
+  - job_name: podman
+    journal:
+      max_age: 12h
+      path: /var/log/journal
+      labels:
+        host: ${MONITOR_NODE_NAME}
+        job: docker_logs
+    relabel_configs:
+      # Mantener solo las entradas que correspondan a contenedores de Podman
+      - source_labels: ['__journal_container_name']
+        regex: '.+'
+        action: keep
+      # Extraer el nombre del contenedor
+      - source_labels: ['__journal_container_name']
+        target_label: 'container'
+
+  # --- BLOQUE 2: LOGS DE SISTEMA (ARCHIVOS) ---
+  - job_name: system
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: system_logs
+          host: ${MONITOR_NODE_NAME}
+          __path__: /var/log/syslog
+      - targets:
+          - localhost
+        labels:
+          job: system_logs
+          host: ${MONITOR_NODE_NAME}
+          __path__: /var/log/auth.log

@@ -49,6 +49,35 @@ spec:
         - name: dot-config
           mountPath: /.config
 
+    # 3. Recolector de Logs Promtail (Hardened Local)
+    - name: promtail
+      image: ${REGISTRY_PREFIX}/monitor-promtail:${IMAGE_TAG}
+      securityContext:
+        runAsUser: 0
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: [ALL]
+      command:
+        - "/usr/bin/promtail"
+        - "-config.file=/etc/promtail/config.yml"
+      volumeMounts:
+        - name: promtail-config
+          mountPath: /etc/promtail/config.yml
+          readOnly: true
+        - name: journal
+          mountPath: /var/log/journal
+          readOnly: true
+        - name: var-log
+          mountPath: /var/log
+          readOnly: true
+        - name: machine-id
+          mountPath: /etc/machine-id
+          readOnly: true
+        - name: promtail-positions
+          mountPath: /tmp
+          readOnly: false
+
   volumes:
     - name: proc
       hostPath:
@@ -60,4 +89,18 @@ spec:
       hostPath:
         path: ${PODMAN_SOCK}
     - name: dot-config
+      emptyDir: {}
+    - name: promtail-config
+      hostPath:
+        path: ${PROJECT_DIR}/config/promtail.generated.yml
+    - name: journal
+      hostPath:
+        path: ${JOURNAL_PATH}
+    - name: var-log
+      hostPath:
+        path: /var/log
+    - name: machine-id
+      hostPath:
+        path: /etc/machine-id
+    - name: promtail-positions
       emptyDir: {}

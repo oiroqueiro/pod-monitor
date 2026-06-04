@@ -26,6 +26,7 @@ podman network exists ${NETWORK_NAME} || podman network create ${NETWORK_NAME}
 echo "[INFO] Generando archivos estáticos con envsubst..."
 envsubst < "$PROJECT_DIR/manifests/monitor.yaml" > "$PROJECT_DIR/manifests/monitor.generated.yaml"
 envsubst < "$PROJECT_DIR/quadlet/monitor.kube" > "$PROJECT_DIR/quadlet/monitor.generated.kube"
+envsubst < "$PROJECT_DIR/config/promtail.yml" > "$PROJECT_DIR/config/promtail.generated.yml"
 
 # 5. Enlaces simbólicos en la carpeta de Quadlets de Sistema
 echo "[INFO] Creando enlaces simbólicos en $QUADLET_DIR..."

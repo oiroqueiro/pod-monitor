@@ -3,20 +3,21 @@
 
 # 📊 Podman Monitor: Hardened Observability Stack
 
-A high-performance, efficient, and **secure-by-design** system monitoring stack. This project packages **Node Exporter** and **Podman Exporter** into a single Pod using rootless/system-wide **Podman** and **Quadlets**, integrated natively with Linux `systemd`.
+A high-performance, efficient, and **secure-by-design** system monitoring and log aggregation stack. This project packages **Node Exporter**, **Podman Exporter**, and **Prometheus Promtail** into a single Pod using rootless/system-wide **Podman** and **Quadlets**, integrated natively with Linux `systemd`.
 
-This stack is designed to expose metrics endpoints securely so they can be scraped directly by a central Prometheus server over a private network interface (e.g. Netbird VPN).
+This stack is designed to expose metrics endpoints securely for scraping by a central Prometheus server, and to collect and forward system and container logs to a central Loki instance over a private network interface (e.g. Netbird VPN).
 
 ---
 
 ## 🏗️ Architecture & Component Stack
 
-The stack consolidates two core monitoring services into a single systemd-managed Pod:
+The stack consolidates three core monitoring services into a single systemd-managed Pod:
 
 | Component | Upstream Image | Hardened Base Image | Purpose & Scope |
 | :--- | :--- | :--- | :--- |
 | **Node Exporter** | `quay.io/prometheus/node-exporter` | `docker.io/library/alpine` (Minimal) | Captures OS-level metrics (CPU, RAM, Disk, IO). |
 | **Podman Exporter** | `quay.io/navidys/prometheus-podman-exporter` | `docker.io/library/alpine` (Minimal) | Interacts with the Podman API socket to scrape container metrics. |
+| **Promtail** | `docker.io/grafana/promtail` | `docker.io/library/alpine` (Minimal) | Aggregates and forwards system and container logs to Grafana Loki. |
 
 ---
 
@@ -47,6 +48,11 @@ PORT_NODE_EXPORTER=9100
 PORT_PODMAN_EXPORTER=9882
 
 PODMAN_SOCK=/run/podman/podman.sock # Path to the Podman API Socket
+
+# Promtail / Loki configuration
+OCI_NETBIRD_IP=100.92.64.40         # IP of the central Loki instance
+MONITOR_NODE_NAME=vps-prod           # Identifier label for logs and metrics
+JOURNAL_PATH=/run/log/journal        # Path to systemd journal on the host
 ```
 
 ---
