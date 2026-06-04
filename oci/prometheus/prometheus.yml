@@ -1,0 +1,34 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["prometheus:9090"]
+
+  - job_name: "node_exporter"
+    static_configs:
+      - targets: ["node_exporter:9100"]
+        labels:
+          instance: "oci-ampere"
+      - targets: ["100.92.140.120:9100"]
+        labels:
+          instance: "vps-prod"
+
+  - job_name: "netdata"
+    metrics_path: "/api/v1/allmetrics"
+    params:
+      format: [prometheus]
+    static_configs:
+      # --- Máquina 1: Sservidor actual (OCI) ---
+      - targets: ["netdata:19999"]
+        labels:
+          instance: "oci-ampere"
+
+  # --- Máquina 2: VPS Prod (vía Netbird) ---
+  - job_name: "podman_exporter"
+    static_configs:
+      - targets: ["100.92.140.120:9882"]
+        labels:
+          instance: "vps-prod"
